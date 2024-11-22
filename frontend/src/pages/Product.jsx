@@ -7,25 +7,29 @@ import RelatedProducts from '../components/RelatedProducts';
 const Product = () => {
 
     const { productId } = useParams();
-    const { products, currency, addToCart } = useContext(ShopContext)
-    const [productData, setProductData] = useState(false);
+    const { products, currency, addToCart } = useContext(ShopContext);
+    const [productData, setProductData] = useState(null);
     const [image, setImage] = useState('');
     const [size, setSize] = useState('');
 
-    const fetchProductData = async () => {
-        products.map((item) => {
-            if (item._id === productId) {
-                setProductData(item)
-                setImage(item.image[0])
-                return null;
-            }
-        })
-    }
+    const fetchProductData = () => {
+        const product = products.find((item) => item._id === productId);
+        if (product) {
+            setProductData(product);
+            setImage(product.image[0]);
+        }
+    };
 
     useEffect(() => {
-        fetchProductData()
-    }, [productId, products])
+        fetchProductData();
+    }, [productId, products]);
 
+    // Handle sizes string and convert to array
+    const sizes = productData?.sizes
+        ? typeof productData.sizes === 'string'
+            ? productData.sizes.split(',').map((size) => size.trim()) // Split and trim
+            : productData.sizes
+        : [];
 
     return productData ? (
         <div className='border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100'>
@@ -62,8 +66,11 @@ const Product = () => {
                     <div className='flex flex-col gap-4 my-8'>
                         <p>Select Size</p>
                         <div className='flex gap-2'>
-                            {productData.sizes.map((item, index) => (
-                                <button onClick={() => setSize(item)} className={`border py-2 px-4 bg-gray-100 ${item === size ? 'border-orange-500' : ''}`} key={index}>{item}</button>
+                            {sizes.map((item, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setSize(item)}
+                                    className={`border py-2 px-4 bg-gray-100 ${item === size ? 'border-orange-500' : ''}`}>{item}</button>
                             ))}
                         </div>
                     </div>
@@ -91,9 +98,8 @@ const Product = () => {
 
             {/* ------------- Display Related Products -------------- */}
             <RelatedProducts category={productData.category} subCategory={productData.subCategory} />
-
         </div>
-    ) : <div className='opacity-0'></div>
-}
+    ) : <div className='opacity-0'></div>;
+};
 
-export default Product
+export default Product;
